@@ -1,7 +1,7 @@
 ---
 # Design and Simulation of a Simplistic Direct Memory Access (DMA) Controller using Verilog HDL
 
-This work was undertaken as a part of Engineering mini project for 5th semester.The project focuses on implementing a DMA controller using Verilog HDL, demonstrating how data transfers can occur directly between memory and I/O devices without continuous CPU involvement. It includes detailed RTL design, testbenches, simulation results, and explanatory notes to help understand the working principle of the DMA controller.  
+This work was undertaken as a part of Engineering mini project for 5th semester.The project focuses on implementing a simplistic DMA controller using Verilog HDL, demonstrating how data transfers can occur directly between memory and I/O devices without continuous CPU involvement. It includes detailed RTL design, testbenches, simulation results, and explanatory notes to help understand the working principle of the DMA controller.  
 
 ---
 # Abstract  
