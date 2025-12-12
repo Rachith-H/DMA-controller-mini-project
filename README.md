@@ -39,7 +39,152 @@ This project emphasizes RTL design, focusing on the structural and functional as
 2. To design and implement a basic DMA controller using Verilog HDL with FSM-based control logic.
 3. To simulate, verify, and validate the design using appropriate testbenches and waveform analysis.
 4. To gain practical exposure to modular RTL design, signal behavior, and digital system debugging techniques.
---- 
+---  
+# System Overview 
+![IC_schematic](Images/IC_Schematic.png)   
+
+The DMA controller is implemented as a fully synchronous single-channel system designed to 
+handle data transfers between memory and peripheral devices with minimal CPU involvement. 
+All operations are synchronized using a single, stable clock source to ensure reliable timing 
+and deterministic behavior. Configuration of the controller is achieved through an 8-bit control 
+register, enabling software-driven selection of operational modes, transfer direction, addressing 
+style, and optional fly-by functionality.   
+
+The design supports three distinct transfer modes—Burst, Cycle-Stealing, and 
+Transparent—allowing the system to optimize throughput, minimize bus contention, or 
+leverage idle cycles depending on the application. Furthermore, the controller is capable of 
+operating in three transfer directions: Memory ↔ I/O, I/O → Memory, and
+Memory → Memory, providing flexibility for both processor-based and SoC-based 
+architectures.   
+
+An additional Fly-by mechanism allows data to be forwarded directly between source and 
+destination during transfers, reducing buffering requirements and improving latency 
+performance. The architecture is modular with well-defined interfaces, enabling easy 
+integration into larger processor subsystems while supporting deterministic and programmable 
+data handling.  
+
+---
+# Design Methodology
+![System_arc_des](Images/Sys_arc_des)  
+The image above provides a visual overview of the DMA controller’s internal organization. 
+
+## Ports 
+ - Data In (8-bit) — Input to DMA. Carries data read from source (memory or I/O). On a 
+MEMR or IOR cycle the device places data on this bus and DMA samples it (usually into 
+a data buffer). 
+ - Data Out (8-bit) — Output from DMA. Holds data to be written to memory or I/O when 
+MEMW / IOW is asserted. 
+ - Address (16-bit) — Output from DMA. Carries source or destination addresses during 
+read/write phases. DMA drives the address bus according to which phase it’s in (read phase 
+uses source address; write phase uses destination address). 
+ - Setup (16-bit) — Input bus used by CPU to program internal registers. When REGW is 
+asserted with a chosen REGSEL, the Setup value is latched into that internal register.
+
+## DMA Function Pins  
+These are the control, status and bus-control signals the DMA uses to interact with CPU, 
+memory and peripherals: 
+1. HLD (Hold) — Output (from DMA to CPU) 
+DMA asserts HLD to request control of the system bus (address/data/control lines). It 
+means “please let me take the bus”. 
+2. HLDA (Hold Acknowledge) — Input (from CPU) 
+CPU asserts HLDA to indicate it has relinquished the bus and DMA may start using it 
+(acknowledges the hold request). 
+3. DREQ (DMA Request) — Input (from peripheral) 
+Peripheral asserts DREQ to ask the DMA to perform a transfer. This is the usual transfer 
+trigger. 
+4. DACK (DMA Acknowledge) — Output (from DMA) 
+DMA asserts DACK to acknowledge it received DREQ and is ready/performing transfer. 
+5. BG (Bus Grant) — Input 
+Alternative bus grant signal (used in BG-based/transparent modes). When BG is asserted 
+the arbiter says DMA may use the bus. 
+6. MEMR (Memory Read) — Output 
+Asserted when DMA reads from system memory (places address on Addrbus, asserts 
+MEMR and samples Data_in). 
+7. MEMW (Memory Write) — Output 
+Asserted when DMA writes to system memory (places address on Addrbus, drives 
+Data_out, and pulses MEMW to write). 
+8. RST (Reset) — Input 
+Synchronous/asynchronous reset that clears internal registers, state machine, outputs and 
+returns DMA to IDLE. 
+9. IOR (I/O Read) — Output 
+Asserted when DMA reads from an I/O device (used instead of MEMR for I/O-mapped 
+devices). 
+10. IOW (I/O Write) — Output 
+Asserted when DMA writes to an I/O device (used instead of MEMW for I/O-mapped 
+devices). 
+11. CLK (Clock) — Input 
+System clock for FSM, register updates and synchronous logic. 
+12. EOP (End Of Process) — Output 
+Asserted when DMA completes the requested transfer (counter reaches zero or DREQ de
+asserts). Useful for CPU interrupts or status. 
+13. RDY (Ready) — Input 
+Indicates target memory/I/O is ready for data; DMA should check RDY before 
+sampling/writing to ensure stable transfer. 
+14. REGW (Register Write) — Input 
+When REGW is asserted, the value on Setup[15:0] is written into the internal register 
+selected by REGSEL. 
+15. REGSEL0 (bit 0) — Input 
+Register select LSB — together with REGSEL1 chooses which internal register to write. 
+16. REGSEL1 (bit 1) — Input 
+Register select MSB — with REGSEL0, selects Control / Counter / Source / Destination 
+for REGW.
+
+## Internal Registers  
+ - Control register (8-bit) — central configuration byte controlling mode and behavior. It 
+contains bits described below (D7..D0). This register determines transfer type, mode 
+(burst/cycle/transparent), fly-by enable, and address increment/decrement. 
+ - Counter (16-bit) — holds remaining transfer length (usually number of 8-bit bytes). It 
+decrements each completed transfer and when it reaches zero DMA asserts EOP. 
+ - Source Address register (16-bit) — current read address. Updated after each read if 
+increment/decrement enabled. 
+ - Destination Address register (16-bit) — current write address. Updated after each write 
+if increment/decrement enabled. 
+ - Data buffer register (8-bit) — temporary storage between read and write phases (used 
+when not in flyby mode). Ensures write data is stable and meets bus timing. 
+
+## Register Selection  
+When CPU wants to configure the DMA, it places a 16-bit value on the Setup bus and pulses 
+REGW while setting REGSEL: 
+ - 00 → Control register (only low 8 bits usually used, remaining bits ignored) 
+ - 01 → Counter (16-bit) — number of bytes/words to transfer .
+ - 10 → Source Address (16-bit) — starting address to read from .
+ - 11 → Destination Address (16-bit) — starting address to write to.
+
+## Control Register  
+![ctrl_rg](Images/Ctrl_reg)  
+ - C7 — Address control (Increment/Decrement) 
+    - 1 = increment source/destination addresses after each byte (typical for forward memory 
+     copies). 
+    - 0 = decrement addresses after each byte (useful for LIFO-like transfers or peripherals that 
+require reverse order). 
+ - C6 — Fly-by enable 
+When set, DMA attempts fly-by transfer: the data read from source is directly passed to 
+the write phase (destination) without storing in the internal buffer. This reduces latency 
+and buffer usage but requires that bus timing and device readiness allow back-to-back 
+read/write. 
+ - C5 — Selects Mem ↔ Mem transfer (memory-to-memory) 
+When set, DMA configures both phases as memory operations (MEMR then MEMW) 
+using source and destination addresses. 
+ - C4 — Selects Memory → I/O transfer 
+When set, the read phase uses MEMR and the write phase uses IOW (write to I/O 
+device). 
+ - C3 — Selects I/O → Memory transfer 
+When set, read phase uses IOR (read from I/O device) and write phase uses MEMW. 
+ - C2 — Activates Burst mode 
+DMA holds the bus for the entire transfer block. Best throughput because DMA 
+continuously reads/writes until Counter = 0. 
+ - C1 — Activates Cycle-stealing mode 
+DMA performs one transfer (read+write) and returns the bus to CPU, repeating when 
+granted again. Allows CPU to run between transfers. 
+ - C0 — Activates Transparent mode 
+DMA only transfers while the Arbiter’s BG signal is asserted (when bus is free). If BG 
+de-asserts mid-transfer, DMA cannot resume the interrupted transfer and will re-read 
+previous data on next attempt (design limitation to be aware of).
+
+---  
+
+
+
 
 
 
