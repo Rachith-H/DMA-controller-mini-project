@@ -235,7 +235,7 @@ The image below is the finite state machine representing the control flow of the
    - After completion, the controller transitions to either the Flyby or Store state based on the 
   mode setting. 
  
-4. **STORE State*** 
+4. **STORE State**
    - The data read from the source is latched into an internal data buffer register. 
    - All read control signals are deactivated to complete the read phase. 
    - The controller then prepares to perform the write operation and moves to the Write state. 
