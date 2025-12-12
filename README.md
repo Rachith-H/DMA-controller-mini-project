@@ -410,7 +410,7 @@ The modes tested include:
 
 ---  
 # Team Members
- - Rachith H
- - Sakshi Wali
- - Ratan Shantaraj Gowda
- - Priya Patel SG
+1. Rachith H
+2. Sakshi Wali
+3. Ratan Shantaraj Gowda
+4. Priya Patel SG
