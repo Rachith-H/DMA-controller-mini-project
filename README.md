@@ -1,7 +1,7 @@
 ---
 # Design and Simulation of a Simplistic Direct Memory Access (DMA) Controller using Verilog HDL
 
-This work was undertaken as a part of Engineering mini project for 5th semester.The project focuses on implementing a simplistic DMA controller using Verilog HDL, demonstrating how data transfers can occur directly between memory and I/O devices without continuous CPU involvement. It includes detailed RTL design, testbenches, simulation results, and explanatory notes to help understand the working principle of the DMA controller.  
+This work was undertaken as a part of Engineering mini project for 5th semester.The project focuses on implementing a simplistic DMA controller using Verilog HDL, demonstrating how data transfers occurs without CPU involvement. It includes detailed RTL design, testbenches, simulation results, and explanatory notes to help understand the working principle of the DMA controller.  
 
 ---
 # Abstract  
@@ -32,6 +32,105 @@ This project emphasizes RTL design, focusing on the structural and functional as
 | **Processor Load**  | High                                 | Low                                               |
 | **Transfer Speed**  | Slower, depends on CPU               | Faster and more efficient                         |
 | **Use Case**        | Small or infrequent transfers        | Large or continuous transfers                     |
+
+--- 
+# Project Objectives
+1. To understand the working principle and internal operation of a Direct Memory Access (DMA) controller.
+2. To design and implement a basic DMA controller using Verilog HDL with FSM-based control logic.
+3. To simulate, verify, and validate the design using appropriate testbenches and waveform analysis.
+4. To gain practical exposure to modular RTL design, signal behavior, and digital system debugging techniques.
+--- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ---
