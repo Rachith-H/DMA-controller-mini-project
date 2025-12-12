@@ -64,9 +64,11 @@ integration into larger processor subsystems while supporting deterministic and 
 data handling.  
 
 ---
-# Design Methodology
-![System_arc_des](Images/Sys_arc_des)  
-The image above provides a visual overview of the DMA controller’s internal organization. 
+# System Architecture Design 
+
+The image below provides a visual overview of the DMA controller’s internal organization.   
+
+![System_arc_des](Images/Sys_arc_des.png)  
 
 ## Ports 
  - Data In (8-bit) — Input to DMA. Carries data read from source (memory or I/O). On a 
@@ -151,7 +153,7 @@ REGW while setting REGSEL:
  - 11 → Destination Address (16-bit) — starting address to write to.
 
 ## Control Register  
-![ctrl_rg](Images/Ctrl_reg)  
+![ctrl_rg](Images/Ctrl_reg.png)  
  - C7 — Address control (Increment/Decrement) 
     - 1 = increment source/destination addresses after each byte (typical for forward memory 
      copies). 
@@ -182,6 +184,83 @@ de-asserts mid-transfer, DMA cannot resume the interrupted transfer and will re-
 previous data on next attempt (design limitation to be aware of).
 
 ---  
+
+# Finite State Machine (FSM) Modeling  
+
+The image below is the finite state machine representing the control flow of the DMA controller.   
+
+![FSM](Images/FSM_dma.png)  
+
+1. IDLE State 
+   - The controller remains inactive in this state. 
+   - It continuously monitors the DMA request (DREQ) line. 
+   - When request is detected, controller asserts the Hold signal to get control of the system bus  
+   - After initiating the hold request, the controller proceeds to the Handshake state. 
+ 
+2. HNDSHAKE (Handshake) State 
+   - In this state, the DMA controller performs and register initialization. 
+   - It waits for the CPU to acknowledge the hold request through Bus Grant (BG) or Hold 
+   Acknowledge (HLDA) signals. 
+   - The controller also allows programming of internal registers such as the control, source, 
+   destination, and counter registers. 
+   - Once bus ownership is granted and the device is ready, the controller asserts DMA 
+   Acknowledge (DACK) and proceeds to the Read state.
+
+3. READ State 
+   - The DMA controller reads data from the source location, which can be either memory or 
+  an I/O device. 
+   - The source address is placed on the address bus, and the appropriate read signal (MEMR 
+  or IOR) is activated. 
+   - If fly-by mode is enabled, the data is directly transferred to the destination without 
+  buffering, otherwise, the data is temporarily stored in an internal buffer. 
+   - After completion, the controller transitions to either the Flyby or Store state based on the 
+  mode setting. 
+ 
+4. STORE State 
+   - The data read from the source is latched into an internal data buffer register. 
+   - All read control signals are deactivated to complete the read phase. 
+   - The controller then prepares to perform the write operation and moves to the Write state. 
+
+5. WRITE State 
+   - The DMA controller sets up the destination address and prepares the data for transfer. 
+   - It places the destination address on the address bus and loads the buffered data onto the 
+data bus. 
+   - This is a preparatory phase before the actual write occurs. 
+   - The controller then proceeds to the Write_data state. 
+ 
+6. WRITE_data State 
+   - In this state, the actual data transfer to the destination is carried out. 
+   - The controller asserts the required write control signal (MEMW or IOW) to perform the 
+  write operation. 
+   - After completing the data write, the controller proceeds to the Update state. 
+ 
+7. FLYBY State 
+   - This state supports direct data transfer between source and destination without a buffer. 
+   - Both read and write operations occur almost simultaneously, improving transfer speed. 
+   - After the fly-by transfer, the controller moves to the Update state. 
+ 
+8. UPDATE State 
+   - The DMA controller updates its internal registers after each transfer. 
+   - The source and destination addresses are incremented or decremented depending on the 
+   direction bit in the control register. 
+   - The transfer counter is decremented to track remaining data words. 
+   - If all data has been transferred, the End of Process (EOP) signal is asserted, and bus control 
+   is released. 
+   - Otherwise, the controller returns to the Read or Handshake state for the next transfer 
+   cycle.
+
+---  
+
+# Verilog Implementation  
+
+The following diagram illustrates the flow of the DMA module as implemented using Verilog in behavioural description.   
+
+![verilog_blk_dig](Images/Verilog_implementation.png)      
+
+The DMA controller is implemented using a behavioural modeling approach in Verilog, focusing on describing the functional operation rather than gate-level details. The module begins with input–output declarations followed by internal registers and parameter definitions used for state encoding. The control mechanism is implemented through sequential always blocks that handle reset logic, state transitions, and the main FSM behaviour. Each state in the FSM governs signal activation, address updates, and data-transfer control, making the design modular and easy to simulate. This behavioural description allows clear visibility of system operation and simplifies verification through testbenches.  
+
+---  
+# Simulation Results  
 
 
 
