@@ -27,6 +27,8 @@ efficiency. The design is structured around a finite state machine (FSM) that ma
 memory-to-peripheral, peripheral-to-memory, and memory-to-memory data transfers, providing flexibility for various system requirements. This project primarily focuses on RTL design, with minimal verification 
 performed using simple testbenches to validate basic data transfer functionality.  
 
+ - The entire RTL design, simulation, and analysis were carried out using the Xilinx Vivado Tool.
+
 
 ---
 # Introduction  
