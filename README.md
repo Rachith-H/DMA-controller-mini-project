@@ -1,4 +1,4 @@
----
+ ---
 # Design and Simulation of a Simplistic Direct Memory Access (DMA) Controller using Verilog HDL
 
 This work was undertaken as a part of Engineering mini project for 5th semester.The project focuses on implementing a simplistic DMA controller using Verilog HDL, demonstrating how data transfers occurs without CPU involvement. It includes detailed RTL design, testbenches, simulation results, and explanatory notes to help understand the working principle of the DMA controller.  
@@ -257,118 +257,143 @@ The following diagram illustrates the flow of the DMA module as implemented usin
 
 ![verilog_blk_dig](Images/Verilog_implementation.png)      
 
-The DMA controller is implemented using a behavioural modeling approach in Verilog, focusing on describing the functional operation rather than gate-level details. The module begins with input–output declarations followed by internal registers and parameter definitions used for state encoding. The control mechanism is implemented through sequential always blocks that handle reset logic, state transitions, and the main FSM behaviour. Each state in the FSM governs signal activation, address updates, and data-transfer control, making the design modular and easy to simulate. This behavioural description allows clear visibility of system operation and simplifies verification through testbenches.  
+The DMA controller is implemented using a behavioural modeling approach in Verilog, focusing on describing the functional operation rather than gate-level details. The module begins with input–output declarations followed by internal registers and parameter definitions used for state encoding. The control mechanism is implemented through sequential always blocks that handle reset logic, state transitions, and the main FSM behaviour. Each state in the FSM governs signal activation, address updates, and data-transfer control, making the design modular and easy to simulate. This behavioural description allows clear visibility of system operation and simplifies verification through testbenches.    
+
+The image below is the RTL schematic generated from the Verilog design, illustrating the internal logic connections.  
+
+![rtl_sch](Images/RTL_schematic.png)  
+
 
 ---  
-# Simulation Results  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Simulation Results    
+The DMA controller was verified through twelve simulation testbenches, each targeting a specific transfer mode and ensuring data transfer behaviour. 
+The simulation environment initializes the DMA through a reset sequence, loads configuration values into internal registers, and then triggers the corresponding transfer operation.  
+
+The modes tested include:
+   - I/O Device To Memory - Burst Mode
+   - I/O Device To Memory - Burst Mode - Flyby
+   - I/O Device To Memory - Cycle Stealing Mode
+   - I/O Device To Memory - Transparent Mode
+   - Memory To I/O Device - Burst Mode
+   - Memory To I/O Device - Cycle Stealing Mode
+   - Memory To I/O Device - Cycle Stealing Mode - Flyby
+   - Memory To I/O Device - Transparent Mode
+   - Memory To Memory - Burst Mode
+   - Memory To Memory - Cycle Stealing Mode
+   - Memory To Memory - Transparent Mode
+   - Memory To Memory - Transparent Mode - Flyby
+
+1. **Burst Mode** 
+    - DMA takes full control of the bus and performs continuous uninterrupted transfers.
+    - Operates until the programmed byte/word count is completed.
+    - Provides the highest throughput but temporarily blocks CPU bus access.
+    - Can be used for Memory-to-Memory, Memory-to-I/O, and I/O-to-Memory transfers.
+
+2. **Cycle Stealing Mode**
+   - DMA transfers one byte/word at a time, briefly stealing the bus for each transfer.
+   - After every transfer, control is immediately returned to the CPU.
+   - Minimizes CPU stalls while still supporting background transfers.
+   - Works for Memory-to-Memory, Memory-to-I/O, and I/O-to-Memory operations.
+
+3. **Transparent Mode**
+   - DMA operates only when the bus is idle, i.e., when the CPU is not using it.
+   - Controlled by the Bus Grant (BG) signal from the CPU/bus arbiter.
+   - Ensures zero interference with CPU execution but offers lower throughput.
+   - Suitable for Memory-to-Memory, Memory-to-I/O, and I/O-to-Memory transfers.
+
+ 
+4. **Flyby Mode** (Enhancement applicable to any mode above)
+    - Data bypasses internal DMA data registers and moves directly between source and destination.
+    - Reduces latency and increases transfer speed for specific scenarios.
+    - Can be combined with Burst, Cycle Stealing, or Transparent modes.
+    - Supported for Memory-to-Memory, Memory-to-I/O, and I/O-to-Memory operations.
+
+
+## I/O Device To Memory - Burst Mode 
+![sim1](Simulation%20Results/IO_Mem_burst.png)
+
+## I/O Device To Memory - Burst Mode - Flyby 
+![sim1](Simulation%20Results/IO_mem_burst_flyby.png) 
+
+## I/O Device To Memory - Cycle Stealing Mode  
+![sim1](Simulation%20Results/IO_Mem_cycle_steal.png) 
+
+## I/O Device To Memory - Transparent Mode  
+![sim1](Simulation%20Results/IO_mem_transparent.png) 
+
+## Memory To I/O Device - Burst Mode  
+![sim1](Simulation%20Results/Mem_IO_burst.png) 
+
+## Memory To I/O Device - Cycle Stealing Mode  
+![sim1](Simulation%20Results/Mem_IO_cycle_steal.png) 
+
+## Memory To I/O Device - Cycle Stealing Mode - Flyby  
+![sim1](Simulation%20Results/Mem_IO_cycle_steal_flyby.png) 
+
+## Memory To I/O Device - Transparent Mode  
+![sim1](Simulation%20Results/Mem_IO_transparent.png) 
+
+## Memory To Memory - Burst Mode  
+![sim1](Simulation%20Results/Mem_Mem_burst.png) 
+
+## Memory To Memory - Cycle Stealing Mode  
+![sim1](Simulation%20Results/Mem_Mem_cycle_steal.png) 
+
+## Memory To Memory - Transparent Mode  
+![sim1](Simulation%20Results/Mem_Mem_transparent.png) 
+
+## Memory To Memory - Transparent Mode - Flyby  
+![sim1](Simulation%20Results/Mem_mem_transparent_flyby.png)   
+
+---  
+# Advantages  
+ - **Reduced CPU Workload** : The CPU is freed from handling data transfers, allowing it to focus on critical tasks and improving overall performance.
+ - **Higher Data Transfer Speed** : Transfers large blocks of data faster than CPU-driven methods, improving throughput in real-time systems.
+ - **Efficient Memory and Peripheral Access** : Supports direct movement of data between memory and I/O, eliminating unnecessary intermediate operations.
+ - **Improved System Responsiveness** : Enables smooth operation in applications like audio/video streaming, communication interfaces, and sensor acquisition.
+ - **Flexible Transfer Modes** : User-selectable modes (burst, cycle stealing, transparent) allow optimization based on system requirement.
+ - **Reduced Power Consumption** : By minimizing CPU intervention, the system can save power, especially useful in embedded and portable devices.
 
 ---
-# Literature Survey 
-Based on the study of existing architectures, this project aims to design a simplified single-channel DMA controller in Verilog HDL suitable for educational purposes.
-The following papers were referred as a part of literature survey.
-
-| Reference | Title | Methodology | Remarks |
-|-----------|-------|------------|---------|
-| Ankur Changela, JETIR, 2018 | [VLSI Implementation of Direct Memory Access DMA Controller](https://www.jetir.org/view?paper=JETIR1807153) | Designed DMA controller in Verilog HDL with testbench; synthesis and simulation with Icarus and Design Vision EDA tools. Supports 4 channels, auto reload, and multiple transfer modes (single/block/demand). | Successfully synthesized and simulated multi-channel DMA controller with flexible transfer modes suitable for modern processors. |
-| Ravi Kumar, Gurpreet Singh, IJRTI, 2023 | [Design of DMA Controller Using Verilog HDL](https://www.ijrti.org/papers/IJRTI2305073.pdf) | Verilog HDL implemented DMA controller designed for SoC; detailed cycle descriptions (idle/active) and transfer modes with bus arbitration. Verification done by RTL simulation. | Comprehensive simulation with realistic DMA cycles and flowcharts; suitable for FPGA implementation with bus and memory interface clarity. |
-| Vibhu Chinmay, Shubham Sachdeva, IJIRT, 2014 | [A Review Paper on Design of DMA Controller Using VHDL](https://ijirt.org/publishedpaper/IJIRT100876_PAPER.pdf) | Review of DMA controller design focusing on Intel 8237 DMA core in VHDL. Emphasizes testbench use, RTL schematic generation, power-aware modeling, and embedded SoC integration. | Provides detailed insights on IP core design using VHDL, simulation verification, and power-aware considerations for embedded systems. |
-| Aditya Bhagwat et al., ICICV, 2025 |[Design and Implementation of an Efficient DMA Controller with Error Detection for Embedded Systems](https://www.nielit.gov.in/aurangabad/sites/default/files/Aurangabad/Design_and_Implementation_of_an_Efficient_DMA_Controller_with_Error_Detection_for_Embedded_Systems.pdf) | Modular Verilog design with integrated memory controller using lightweight ECC for real-time error detection. FSM with IDLE, READ, WRITE, DONE states. Tested on FPGA with focus on low latency, throughput (~256MB/s), and fault tolerance. | Advanced embedded/IoT-oriented design balancing resource efficiency, reliability, and speed. FPGA verified with modular architecture and error detection suitable for safety-critical applications. |  
-
-The Intel 8237 DMA Controller datasheet was also used as a resource to understand DMA operations and design principles.  
-
+# Limitations  
+ - **Ignored CPU Data Consistency** : Since DMA and CPU access memory independently, improper synchronization can lead to data inconsistency or corruption.
+ - **Complexity in Debugging** : Debugging DMA operations can be harder due to multiple states, concurrent bus usage, and indirect data flow.
+ - **Requires Additional Hardware** : DMA adds extra circuitry and control logic, increasing system cost, size, and design complexity.
+ - **Priority and Arbitration Issues** : In multi-device systems, DMA may block or delay CPU access to memory, affecting real-time response if not managed properly.
+ - **Limited Address and Data Widths** : DMA transfer size and addressing capability depend on the hardware structure; large memory systems may need multi-channel DMA.
 ---
+# Applications  
+ - **Microcontroller-Based Embedded Systems** : Used to transfer data between memory and I/O peripherals without CPU involvement, improving speed and reducing CPU workload.
+ - **Data Transfer in Communication Systems** : Used in UART, SPI, I2C, and Ethernet interfaces for fast streaming of data between buffers and peripheral blocks.
+ - **Audio and Video Processing Units** : Enables continuous transfer of audio/video frames from memory to DAC/ADC modules for uninterrupted playback or recording.
+ - **Sensor Data Acquisition in IoT Devices** : Used in devices like STM32, ESP32, etc., to continuously transfer sensor data to memory for processing.
+ - **Memory-to-Memory Transfers in Processors** : Used for large block data movement such as buffering, copying, or updating memory based datasets. 
+ - **Data Logging Devices and Storage Systems** : Transfers data from RAM to storage memory (Flash/SD card) efficiently.
+---
+# Future Scope
+ - **Multi-Channel Expansion** : The design can be upgraded to support multiple DMA channels to handle simultaneous data transfers between several peripherals.
+ - **Advanced Priority Arbitration** : Implementing priority-based channel arbitration allows efficient handling of time-critical transfers in multi-source systems.
+ - **AXI/AHB/PCI Interface Compatibility** : Extending the DMA to support standardized on-chip bus protocols enables integration in real SoC/processor platforms.
+ - **Physical Design and ASIC Implementation** : Further work may include backend flow such as synthesis, floorplanning, clock tree design, placement-routing, and timing closure.
+ - **Error Detection and Handling** : Enhancing the system with parity checking or CRC ensures reliable data transfers in noisesensitive environments.
+---
+# Conclusion  
+ - The designed DMA controller successfully automates data transfer between memory and peripherals without burdening the CPU.
+ - Verilog HDL implementation provides modularity, scalability, and reusability for future digital system enhancements.
+ - Simulation results validate proper operation of transfer modes, address updates, data buffering, and register control.
+ - Integration of burst, cycle stealing, and transparent modes offers flexibility for a wide range of system applications.
+ - The overall design improves system throughput and efficiency while maintaining reliable data transfer.
+ - The project demonstrates practical exposure to digital design, FSM implementation, and hardware verification methodologies.
+---  
+# References  
+ - [VLSI Implementation of Direct Memory Access DMA Controller](https://www.jetir.org/view?paper=JETIR1807153)
+ - [Design of DMA Controller Using Verilog HDL](https://www.ijrti.org/papers/IJRTI2305073.pdf)
+ - [A Review Paper on Design of DMA Controller Using VHDL](https://ijirt.org/publishedpaper/IJIRT100876_PAPER.pdf)
+ - [Design and Implementation of an Efficient DMA Controller with Error Detection for Embedded Systems](https://www.nielit.gov.in/aurangabad/sites/default/files/Aurangabad/Design_and_Implementation_of_an_Efficient_DMA_Controller_with_Error_Detection_for_Embedded_Systems.pdf)
+
+---  
+# Team Members
+ - Rachith H
+ - Sakshi Wali
+ - Ratan Shantaraj Gowda
+ - Priya Patel SG
