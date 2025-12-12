@@ -90,77 +90,77 @@ The image below provides a visual overview of the DMA controller’s internal or
 ![System_arc_des](Images/Sys_arc_des.png)  
 
 ## Ports 
- - Data In (8-bit) — Input to DMA. Carries data read from source (memory or I/O). On a 
+ - **Data In (8-bit)** — Input to DMA. Carries data read from source (memory or I/O). On a 
 MEMR or IOR cycle the device places data on this bus and DMA samples it (usually into 
 a data buffer). 
- - Data Out (8-bit) — Output from DMA. Holds data to be written to memory or I/O when 
+ - **Data Out (8-bit)** — Output from DMA. Holds data to be written to memory or I/O when 
 MEMW / IOW is asserted. 
- - Address (16-bit) — Output from DMA. Carries source or destination addresses during 
+ - **Address (16-bit)** — Output from DMA. Carries source or destination addresses during 
 read/write phases. DMA drives the address bus according to which phase it’s in (read phase 
 uses source address; write phase uses destination address). 
- - Setup (16-bit) — Input bus used by CPU to program internal registers. When REGW is 
+ - **Setup (16-bit)** — Input bus used by CPU to program internal registers. When REGW is 
 asserted with a chosen REGSEL, the Setup value is latched into that internal register.
 
 ## DMA Function Pins  
 These are the control, status and bus-control signals the DMA uses to interact with CPU, 
 memory and peripherals: 
-1. HLD (Hold) — Output (from DMA to CPU) 
+1. **HLD (Hold)** — Output (from DMA to CPU) 
 DMA asserts HLD to request control of the system bus (address/data/control lines). It 
 means “please let me take the bus”. 
-2. HLDA (Hold Acknowledge) — Input (from CPU) 
+2. **HLDA (Hold Acknowledge)** — Input (from CPU) 
 CPU asserts HLDA to indicate it has relinquished the bus and DMA may start using it 
 (acknowledges the hold request). 
-3. DREQ (DMA Request) — Input (from peripheral) 
+3. **DREQ (DMA Request)** — Input (from peripheral) 
 Peripheral asserts DREQ to ask the DMA to perform a transfer. This is the usual transfer 
 trigger. 
-4. DACK (DMA Acknowledge) — Output (from DMA) 
+4. **DACK (DMA Acknowledge)** — Output (from DMA) 
 DMA asserts DACK to acknowledge it received DREQ and is ready/performing transfer. 
-5. BG (Bus Grant) — Input 
+5. **BG (Bus Grant)** — Input 
 Alternative bus grant signal (used in BG-based/transparent modes). When BG is asserted 
 the arbiter says DMA may use the bus. 
-6. MEMR (Memory Read) — Output 
+6. **MEMR (Memory Read)** — Output 
 Asserted when DMA reads from system memory (places address on Addrbus, asserts 
 MEMR and samples Data_in). 
-7. MEMW (Memory Write) — Output 
+7. **MEMW (Memory Write)** — Output 
 Asserted when DMA writes to system memory (places address on Addrbus, drives 
 Data_out, and pulses MEMW to write). 
-8. RST (Reset) — Input 
+8. **RST (Reset)** — Input 
 Synchronous/asynchronous reset that clears internal registers, state machine, outputs and 
 returns DMA to IDLE. 
-9. IOR (I/O Read) — Output 
+9. **IOR (I/O Read)** — Output 
 Asserted when DMA reads from an I/O device (used instead of MEMR for I/O-mapped 
 devices). 
-10. IOW (I/O Write) — Output 
+10. **IOW (I/O Write)** — Output 
 Asserted when DMA writes to an I/O device (used instead of MEMW for I/O-mapped 
 devices). 
-11. CLK (Clock) — Input 
+11. **CLK (Clock)** — Input 
 System clock for FSM, register updates and synchronous logic. 
-12. EOP (End Of Process) — Output 
+12. **EOP (End Of Process)** — Output 
 Asserted when DMA completes the requested transfer (counter reaches zero or DREQ de
 asserts). Useful for CPU interrupts or status. 
-13. RDY (Ready) — Input 
+13. **RDY (Ready)** — Input 
 Indicates target memory/I/O is ready for data; DMA should check RDY before 
 sampling/writing to ensure stable transfer. 
-14. REGW (Register Write) — Input 
+14. **REGW (Register Write)** — Input 
 When REGW is asserted, the value on Setup[15:0] is written into the internal register 
 selected by REGSEL. 
-15. REGSEL0 (bit 0) — Input 
+15. **REGSEL0 (bit 0)** — Input 
 Register select LSB — together with REGSEL1 chooses which internal register to write. 
-16. REGSEL1 (bit 1) — Input 
+16. **REGSEL1 (bit 1)** — Input 
 Register select MSB — with REGSEL0, selects Control / Counter / Source / Destination 
 for REGW.
 
 ## Internal Registers  
- - Control register (8-bit) — central configuration byte controlling mode and behavior. It 
+ - **Control register (8-bit)** — central configuration byte controlling mode and behavior. It 
 contains bits described below (D7..D0). This register determines transfer type, mode 
 (burst/cycle/transparent), fly-by enable, and address increment/decrement. 
- - Counter (16-bit) — holds remaining transfer length (usually number of 8-bit bytes). It 
+ - **Counter (16-bit)** — holds remaining transfer length (usually number of 8-bit bytes). It 
 decrements each completed transfer and when it reaches zero DMA asserts EOP. 
- - Source Address register (16-bit) — current read address. Updated after each read if 
+ - **Source Address register (16-bit)** — current read address. Updated after each read if 
 increment/decrement enabled. 
- - Destination Address register (16-bit) — current write address. Updated after each write 
+ - **Destination Address register (16-bit)** — current write address. Updated after each write 
 if increment/decrement enabled. 
- - Data buffer register (8-bit) — temporary storage between read and write phases (used 
+ - **Data buffer register (8-bit)** — temporary storage between read and write phases (used 
 when not in flyby mode). Ensures write data is stable and meets bus timing. 
 
 ## Register Selection  
@@ -173,31 +173,31 @@ REGW while setting REGSEL:
 
 ## Control Register  
 ![ctrl_rg](Images/Ctrl_reg.png)  
- - C7 — Address control (Increment/Decrement) 
+ - **C7 — Address control (Increment/Decrement)** 
     - 1 = increment source/destination addresses after each byte (typical for forward memory 
      copies). 
     - 0 = decrement addresses after each byte (useful for LIFO-like transfers or peripherals that 
 require reverse order). 
- - C6 — Fly-by enable 
+ - **C6 — Fly-by enable**
 When set, DMA attempts fly-by transfer: the data read from source is directly passed to 
 the write phase (destination) without storing in the internal buffer. This reduces latency 
 and buffer usage but requires that bus timing and device readiness allow back-to-back 
 read/write. 
- - C5 — Selects Mem ↔ Mem transfer (memory-to-memory) 
+ - **C5 — Selects Mem ↔ Mem transfer (memory-to-memory)** 
 When set, DMA configures both phases as memory operations (MEMR then MEMW) 
 using source and destination addresses. 
- - C4 — Selects Memory → I/O transfer 
+ - **C4 — Selects Memory → I/O transfer** 
 When set, the read phase uses MEMR and the write phase uses IOW (write to I/O 
 device). 
- - C3 — Selects I/O → Memory transfer 
+ - **C3 — Selects I/O → Memory transfer** 
 When set, read phase uses IOR (read from I/O device) and write phase uses MEMW. 
- - C2 — Activates Burst mode 
+ - **C2 — Activates Burst mode** 
 DMA holds the bus for the entire transfer block. Best throughput because DMA 
 continuously reads/writes until Counter = 0. 
- - C1 — Activates Cycle-stealing mode 
+ - **C1 — Activates Cycle-stealing mode** 
 DMA performs one transfer (read+write) and returns the bus to CPU, repeating when 
 granted again. Allows CPU to run between transfers. 
- - C0 — Activates Transparent mode 
+ - **C0 — Activates Transparent mode** 
 DMA only transfers while the Arbiter’s BG signal is asserted (when bus is free). If BG 
 de-asserts mid-transfer, DMA cannot resume the interrupted transfer and will re-read 
 previous data on next attempt (design limitation to be aware of).
@@ -210,13 +210,13 @@ The image below is the finite state machine representing the control flow of the
 
 ![FSM](Images/FSM_dma.png)  
 
-1. IDLE State 
+1. **IDLE State** 
    - The controller remains inactive in this state. 
    - It continuously monitors the DMA request (DREQ) line. 
    - When request is detected, controller asserts the Hold signal to get control of the system bus  
    - After initiating the hold request, the controller proceeds to the Handshake state. 
  
-2. HNDSHAKE (Handshake) State 
+2. **HNDSHAKE (Handshake) State** 
    - In this state, the DMA controller performs and register initialization. 
    - It waits for the CPU to acknowledge the hold request through Bus Grant (BG) or Hold 
    Acknowledge (HLDA) signals. 
@@ -225,7 +225,7 @@ The image below is the finite state machine representing the control flow of the
    - Once bus ownership is granted and the device is ready, the controller asserts DMA 
    Acknowledge (DACK) and proceeds to the Read state.
 
-3. READ State 
+3. **READ State** 
    - The DMA controller reads data from the source location, which can be either memory or 
   an I/O device. 
    - The source address is placed on the address bus, and the appropriate read signal (MEMR 
@@ -235,30 +235,30 @@ The image below is the finite state machine representing the control flow of the
    - After completion, the controller transitions to either the Flyby or Store state based on the 
   mode setting. 
  
-4. STORE State 
+4. **STORE State*** 
    - The data read from the source is latched into an internal data buffer register. 
    - All read control signals are deactivated to complete the read phase. 
    - The controller then prepares to perform the write operation and moves to the Write state. 
 
-5. WRITE State 
+5. **WRITE State** 
    - The DMA controller sets up the destination address and prepares the data for transfer. 
    - It places the destination address on the address bus and loads the buffered data onto the 
 data bus. 
    - This is a preparatory phase before the actual write occurs. 
    - The controller then proceeds to the Write_data state. 
  
-6. WRITE_data State 
+6. **WRITE_data State** 
    - In this state, the actual data transfer to the destination is carried out. 
    - The controller asserts the required write control signal (MEMW or IOW) to perform the 
   write operation. 
    - After completing the data write, the controller proceeds to the Update state. 
  
-7. FLYBY State 
+7. **FLYBY State** 
    - This state supports direct data transfer between source and destination without a buffer. 
    - Both read and write operations occur almost simultaneously, improving transfer speed. 
    - After the fly-by transfer, the controller moves to the Update state. 
  
-8. UPDATE State 
+8. **UPDATE State** 
    - The DMA controller updates its internal registers after each transfer. 
    - The source and destination addresses are incremented or decremented depending on the 
    direction bit in the control register. 
