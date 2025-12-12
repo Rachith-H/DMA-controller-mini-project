@@ -3,13 +3,30 @@
 
 This work was undertaken as a part of Engineering mini project for 5th semester.The project focuses on implementing a simplistic DMA controller using Verilog HDL, demonstrating how data transfers occurs without CPU involvement. It includes detailed RTL design, testbenches, simulation results, and explanatory notes to help understand the working principle of the DMA controller.  
 
+---  
+# Table of Contents 
+ - [Abstract](#abstract)
+ - [Introduction](#introduction)
+ - [Project Objectives](#project-objectives)
+ - [System Overview](#system-overview)
+ - [System Architecture Design](#system-architecture-design)
+ - [Finite State Machine (FSM) Modeling](#finite-state-machine-fsm-modeling)
+ - [Verilog Implementation](#verilog-implementation)
+ - [Simulation Results](#simulation-results)
+ - [Advantages](#advantages)
+ - [Limitations](#limitations)
+ - [Applications](#applications)
+ - [Future Scope](#future-scope)
+ - [Conclusion](#conclusion)
+ - [References](#references)
 ---
 # Abstract  
 
 A DMA controller facilitates direct data transfers between memory and peripheral devices or between memory blocks without continuous CPU intervention, thereby reducing processor overhead and improving system 
 efficiency. The design is structured around a finite state machine (FSM) that manages control signals, data requests, and acknowledgments to ensure accurate and synchronized transfers. The controller supports 
 memory-to-peripheral, peripheral-to-memory, and memory-to-memory data transfers, providing flexibility for various system requirements. This project primarily focuses on RTL design, with minimal verification 
-performed using simple testbenches to validate basic data transfer functionality.
+performed using simple testbenches to validate basic data transfer functionality.  
+
 
 ---
 # Introduction  
